@@ -5,7 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>macaw45 vods</title>
   <script src="gridjs/gridjs.umd.js"></script>
-  <link href="gridjs/theme/mermaid.min.css" rel="stylesheet" />
+  <link href="gridjs/theme/dark.min.css" rel="stylesheet" />
+  <style>
+    body {
+      font-size: 10pt;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+  </style>
 </head>
 <body>
 
@@ -18,7 +24,7 @@
 
   const COLUMNS = [
     "Stream / VOD Title",
-    "Game",
+    "Game(s)",
     "Alt. Script",
     "Platform",
     "Year",
@@ -34,7 +40,20 @@
   }
 
   function convertJsonRow(data) {
-    return Array.from(data.c, convertJsonField);
+    let row = Array.from(data.c, convertJsonField);
+    return row;
+  }
+
+  function initTable(data) {
+    const grid = new window.gridjs.Grid({
+      columns: COLUMNS,
+      sort: true,
+      search: true,
+      data: data
+    });
+
+    var table = document.getElementById('table');
+    grid.render(table);
   }
 
   function fetchData(url, callback) {
@@ -44,21 +63,19 @@
         var responseText = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
         var response = JSON.parse(responseText);
         console.log("response", response);
+        if (response.errors)
+          throw Error(response.errors[0].detailed_message);
+
         let rows = response.table.rows;
         var data = Array.from(rows, convertJsonRow);
         console.log("converted", data);
         callback(data);
+    }).catch((error) => {
+      console.error("error", error);
     });
   }
 
-  const grid = new window.gridjs.Grid({
-    columns: COLUMNS,
-    sort: true,
-    search: true,
-    data: () => new Promise(resolve => fetchData(URL, resolve))
-  });
-
-  grid.render(document.getElementById('table'));
+  fetchData(URL, initTable);
 </script>
 </body>
 </html>
