@@ -8,20 +8,57 @@
   <link href="gridjs/theme/mermaid.min.css" rel="stylesheet" />
 </head>
 <body>
+
+<div id="table"></div>
+
 <script>
   const DOC_URL = 'https://docs.google.com/spreadsheets/d/10gqbeqajNY1Mztb2hqubbydVoX14bv-UyoYuddc58L8/';
-  const QUERY = "SELECT * OFFSET 1";
+  const QUERY = "SELECT A, B, C, D, E, F, G, H OFFSET 1";
   const URL = DOC_URL + "gviz/tq?tq=" + encodeURIComponent(QUERY);
 
-  fetch(URL)
+  const COLUMNS = [
+    "Stream / VOD Title",
+    "Game",
+    "Alt. Script",
+    "Platform",
+    "Year",
+    "Stream Date",
+    "URL",
+    "Notes"
+  ];
+
+  function convertJsonField(data) {
+    if (data === null)
+      return null;
+    return data.f ?? data.v;
+  }
+
+  function convertJsonRow(data) {
+    return Array.from(data.c, convertJsonField);
+  }
+
+  function fetchData(url, callback) {
+    fetch(url)
     .then(data => data.text())
     .then(function(response) {
         var responseText = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
         var response = JSON.parse(responseText);
-        console.log("json", response);
-        var value = response['table']['rows'][0]['c'][0]['v'];
-        console.log("inner", value);
+        console.log("response", response);
+        let rows = response.table.rows;
+        var data = Array.from(rows, convertJsonRow);
+        console.log("converted", data);
+        callback(data);
     });
+  }
+
+  const grid = new window.gridjs.Grid({
+    columns: COLUMNS,
+    sort: true,
+    search: true,
+    data: () => new Promise(resolve => fetchData(URL, resolve))
+  });
+
+  grid.render(document.getElementById('table'));
 </script>
 </body>
 </html>
