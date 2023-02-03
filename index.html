@@ -58,7 +58,7 @@
 
 <script>
   const DOC_URL = 'https://docs.google.com/spreadsheets/d/10gqbeqajNY1Mztb2hqubbydVoX14bv-UyoYuddc58L8/';
-  const QUERY = "SELECT A, B, C, D, E, F, G, H WHERE G IS NOT NULL AND G <> '' ORDER BY F DESC OFFSET 1";
+  const QUERY = "SELECT A, B, C, D, E, F, G, H WHERE G IS NOT NULL AND G <> '' ORDER BY F DESC";
   const URL = DOC_URL + "gviz/tq?tq=" + encodeURIComponent(QUERY);
 
   const COLUMNS = [
