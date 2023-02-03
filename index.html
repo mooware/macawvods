@@ -9,18 +9,56 @@
   <link rel="shortcut icon" type="image/png" href="img/favicon.png">
   <style>
     body {
-      font-size: 10pt;
-      font-family: Arial, Helvetica, sans-serif;
+      font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+      font-size: 12pt;
+      background-color: #1b1b1b;
+      color: #f8f9fa;
+    }
+    /* dunno why but the placeholder text here doesn't use the correct color */
+    input.gridjs-input {
+      color: #f8f9fa;
+    }
+    /* better color for table borders, doesn't work in the header though */
+    td.gridjs-td, th.gridjs-th {
+      border-color: #34363a;
+    }
+    /* make link colors a bit brighter against the dark background */
+    a:link {
+      text-decoration: none;
+      color: rgb(0, 117, 255);
+    }
+    a:visited {
+      color: rgb(145, 70, 255);
+    }
+    /* get a nice line of links with images */
+    a.imglink {
+      display: inline-flex;
+      align-items: center;
+    }
+    a.imglink img {
+      margin-left: 24px;
+      margin-right: 12px;
     }
   </style>
 </head>
 <body>
 
+<h1>macaw45 vods</h1>
+<div id="links">
+  <a class="imglink" href="https://twitch.tv/macaw45"><img src="img/twitch.png"> stream</a>
+  <a class="imglink" href="https://twitch.tv/macaw45/videos?filter=highlights&sort=time"><img src="img/twitch.png"> highlighted vods</a>
+  <a class="imglink" href="https://twitch.tv/macaw45/videos?filter=archives&sort=time"><img src="img/twitch.png"> recent streams</a>
+  <a class="imglink" href="https://archive.org/search?query=creator%3A%22Macaw45%22"><img src="img/archive.png"> archive.org</a>
+  <a class="imglink" href="https://twitchtracker.com/macaw45/streams"><img src="img/twitchtracker.png"> twitchtracker</a>
+  <a class="imglink" href="https://docs.google.com/spreadsheets/d/10gqbeqajNY1Mztb2hqubbydVoX14bv-UyoYuddc58L8"><img src="img/google-spreadsheet.png"> vod spreadsheet</a>
+</div>
+<h3 id="status">loading...</h3>
+
 <div id="table"></div>
 
 <script>
   const DOC_URL = 'https://docs.google.com/spreadsheets/d/10gqbeqajNY1Mztb2hqubbydVoX14bv-UyoYuddc58L8/';
-  const QUERY = "SELECT A, B, C, D, E, F, G, H OFFSET 1";
+  const QUERY = "SELECT A, B, C, D, E, F, G, H WHERE G IS NOT NULL AND G <> '' ORDER BY F DESC OFFSET 1";
   const URL = DOC_URL + "gviz/tq?tq=" + encodeURIComponent(QUERY);
 
   const COLUMNS = [
@@ -42,6 +80,10 @@
 
   function convertJsonRow(data) {
     let row = Array.from(data.c, convertJsonField);
+    let name = row[0];
+    let href = row[6];
+    row[0] = window.gridjs.html(`<a href='${href}'>${name}</a>`);
+    row[6] = window.gridjs.html(`<a href='${href}'>${href}</a>`);
     return row;
   }
 
@@ -70,9 +112,11 @@
         let rows = response.table.rows;
         var data = Array.from(rows, convertJsonRow);
         console.log("converted", data);
+        document.getElementById('status').innerText = "found " + data.length + " vods";
         callback(data);
     }).catch((error) => {
       console.error("error", error);
+      document.getElementById('status').innerText = error;
     });
   }
 
