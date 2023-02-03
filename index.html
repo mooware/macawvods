@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>macaw45 vods</title>
+  <script src="gridjs/gridjs.umd.js"></script>
+  <link href="gridjs/theme/mermaid.min.css" rel="stylesheet" />
+</head>
+<body>
+<script>
+  const DOC_URL = 'https://docs.google.com/spreadsheets/d/10gqbeqajNY1Mztb2hqubbydVoX14bv-UyoYuddc58L8/';
+  const QUERY = "SELECT * OFFSET 1";
+  const URL = DOC_URL + "gviz/tq?tq=" + encodeURIComponent(QUERY);
+
+  fetch(URL)
+    .then(data => data.text())
+    .then(function(response) {
+        var responseText = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
+        var response = JSON.parse(responseText);
+        console.log("json", response);
+        var value = response['table']['rows'][0]['c'][0]['v'];
+        console.log("inner", value);
+    });
+</script>
+</body>
+</html>
