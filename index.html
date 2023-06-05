@@ -87,11 +87,12 @@
     return row;
   }
 
-  function initTable(data) {
+  function initTable(data, searchKeyword = null) {
+    
     const grid = new window.gridjs.Grid({
       columns: COLUMNS,
       sort: true,
-      search: true,
+      search: { keyword: searchKeyword },
       data: data
     });
 
@@ -99,28 +100,41 @@
     grid.render(table);
   }
 
-  function fetchData(url, callback) {
-    fetch(url)
-    .then(data => data.text())
+  function fetchData(url) {
+    return fetch(url)
     .then(function(response) {
-        var responseText = response.substring(response.indexOf("(") + 1, response.lastIndexOf(")"));
-        var response = JSON.parse(responseText);
-        console.log("response", response);
-        if (response.errors)
-          throw Error(response.errors[0].detailed_message);
+      console.debug("response", response);
+      if (!response.ok)
+        throw Error("request failed, " + response.status + " " + response.statusText);
+      return response.text();
+    })
+    .then(function(responseText) {
+        // google docs json api returns JSONP, not raw json
+        var jsonText = responseText.substring(responseText.indexOf("(") + 1, responseText.lastIndexOf(")"));
+        var jsonData = JSON.parse(jsonText);
+        console.debug("json", jsonData);
+        if (jsonData.errors)
+          throw Error(jsonData.errors[0].detailed_message);
 
-        let rows = response.table.rows;
+        let rows = jsonData.table.rows;
         var data = Array.from(rows, convertJsonRow);
-        console.log("converted", data);
-        document.getElementById('status').innerText = "found " + data.length + " vods";
-        callback(data);
-    }).catch((error) => {
-      console.error("error", error);
-      document.getElementById('status').innerText = error;
+        console.debug("converted", data);
+        return data;
     });
   }
 
-  fetchData(URL, initTable);
+  const urlParams = new URLSearchParams(window.location.search);
+  const query = urlParams.get('q');
+
+  fetchData(URL)
+  .then(function(data) {
+    document.getElementById('status').innerText = "found " + data.length + " vods";
+    initTable(data, query);
+  })
+  .catch((error) => {
+    console.error("error", error);
+    document.getElementById('status').innerText = error;
+  });
 </script>
 </body>
 </html>
