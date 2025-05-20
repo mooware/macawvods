@@ -90,7 +90,7 @@
     let convRow = Array.from(row.c, convertJsonField);
     let name = convRow[nameIdx];
     let href = convRow[urlIdx];
-    convRow[nameIdx] = window.gridjs.html(`<a href='${href}'>${name}</a>`);
+    convRow[nameIdx] = window.gridjs.html(`<a href='${href}'>${name.replaceAll("\n", "<br>")}</a>`);
     convRow[urlIdx] = window.gridjs.html(`<a href='${href}'>${href}</a>`);
     return convRow;
   }
@@ -100,7 +100,13 @@
   }
 
   function convertYtJsonRow(row) {
-    return convertJsonRow(row, 1, 3);
+    let convRow = convertJsonRow(row, 1, 3);
+    // adjust date, if it's like 20251224, change to 2025-12-24
+    if (convRow[0].length == 8)
+      convRow[0] = convRow[0].slice(0, 4) + "-" + convRow[0].slice(4, 6) + "-" + convRow[0].slice(6);
+    // make sure multiline text is displayed correctly
+    convRow[2] = window.gridjs.html(`<span>${convRow[2].replaceAll("\n", "<br>")}</span>`);
+    return convRow;
   }
 
   function mapYtToTwitchRow(row) {
